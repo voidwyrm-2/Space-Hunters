@@ -1,5 +1,6 @@
-# Space Invader game using python turtle module
-# Created by Meezan malek
+# Space Invader game using python pygame
+# Originally reated by Meezan malek
+# Edited into something different enough to not infringe on copyright by Nuclear Pasta
 
 import pygame
 import random
