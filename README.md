@@ -6,6 +6,17 @@ A cool space invader game made with pygame (using definitely not ~~stolen~~ *bor
 
 I'm gonna have so much fun working on this!
 
+### Features:
+* Cool art made by me
+* The ability to switch between ship and enemy skins
+* Nice feeling controls? I guess? I don't actually know, I'm just randomly saying buzzwords
+* Cool saving system that only one-fifth works
+* It's made in Python(so no semiolons!)
+
+
+
+## Other stuff
+
 All art except the background is made by me(still working on that)(also very proud of the shading on [PoliceCruiser.png])
 
 Music is not made by me

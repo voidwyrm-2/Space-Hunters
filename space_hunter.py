@@ -6,6 +6,7 @@ import pygame
 import random
 import math
 from pygame import mixer
+from pathlib import Path
 from pygamefuncs import *
 from config import *
 
@@ -33,22 +34,27 @@ if MUSIC_CONFIG['background']:
     mixer.music.play(-1) #play background music on loop
 
 # defining our player
-player_icon = pygame.image.load(SPRITES[2])
+player_icon = pygame.image.load(PLAYER_SPRITES[0])
 player_lives = LIVES
 playerX = 370
 playerY = 480
 changedX = 0
 playerSpeed = PLAYER_SPEED
 
+player_mode = 'normal'
+
 max_points = SMAX_POINTS
+high_score = 0
 
 # Score
 score_value = 0
 font = pygame.font.Font('freesansbold.ttf', 32)
 
 def show_score(x,y):
-    score = font.render("Score: "+str(score_value),True,(255,255,255))
-    screen.blit(score,(x,y))
+    score = font.render(f'Score: {score_value}({high_score})', True, (255, 255, 255))
+    screen.blit(score, (x, y))
+    needed = font.render(f'Needed: {max_points}', True, (255, 255, 255))
+    screen.blit(needed, (x, y + 30))
 
 def show_lives(x,y):
     lives = font.render("Lives: "+ str(player_lives),True,(255,255,255))
@@ -69,9 +75,11 @@ def player(x, y):
     screen.blit(player_icon, (playerX, playerY))
 
 
+enemy_sprite = pygame.image.load(ENEMY_SPRITES[0])
+
 def createEnemies(enmax: int):
     for i in range(enmax):
-        enemyImg.append(pygame.image.load(SPRITES[4]))
+        enemyImg.append(enemy_sprite)
         enemyX.append(random.randint(0, 736))
         enemyY.append(random.randint(50, 150))
         enemyX_change.append(4)
@@ -82,6 +90,10 @@ def reloadEnemies(enmax):
     enemyX.clear()
     enemyY.clear()
     createEnemies(enmax)
+
+def reloadEnemySprites(enmax):
+    enemyImg.clear()
+    for i in range(enmax): enemyImg.append(enemy_sprite)
 
 
 # Enemy
@@ -104,7 +116,7 @@ def resetEnemy(eX, eY, i):
     eY[i] = random.randint(50, 150)
 
 # defining our bullet
-bullet_icon = pygame.image.load(SPRITES[3])
+bullet_icon = pygame.image.load(BULLET_SPRITES[0])
 bulletX = 0
 bulletY = 480
 bulletY_changed = BULLET_SPEED  #bullet speed
@@ -119,24 +131,126 @@ def bullet(x, y):
 
 def isCollision(enemyX, enemyY, bulletX, bulletY):
     distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
-    if distance < 27:
-        return True
-    else:
-        return False
+    if player_mode == 'normal':
+        if distance < 27: return True
+    elif player_mode == 'heavy': 
+        if distance < 49: return True
+    return False
 
 
 running = True
-should_quit = False
+should_quit = False; should_breset = False; should_creset = False
+add_score = False; VAL_TO_ADD = 1; sval_added = VAL_TO_ADD; should_mas = True
+artiloss = False
+
+def basicreset():
+    global score_value
+    global max_points
+    #global sval_added
+    global player_lives
+    global player_mode
+    global artiloss
+
+    #if sval_added != VAL_TO_ADD: complreset(); return
+    score_value = 0
+    max_points = SMAX_POINTS
+    player_lives = LIVES
+    player_mode = 'normal'
+    artiloss = False
+    num_of_enemies = ENEMIES_NUM
+    reloadEnemies(num_of_enemies)
+
+
+def complreset():
+    global score_value
+    global max_points
+    global sval_added
+    global player_lives
+    global player_mode
+    global artiloss
+
+    score_value = 0
+    max_points = SMAX_POINTS
+    sval_added = VAL_TO_ADD
+    player_lives = LIVES
+    player_mode = 'normal'
+    artiloss = False
+    num_of_enemies = ENEMIES_NUM
+    reloadEnemies(num_of_enemies)
+
+
+
+if Path('resetsave.txt').exists():
+    os.remove('resetsave.txt')
+    os.remove(SAVEFILE)
+
+if not Path(SAVEFILE).exists():
+    print('save file not detected, new one created')
+    with open(SAVEFILE, 'xt') as efi: efi.write('')
+
+def save():
+    with open(SAVEFILE, 'wt') as ofi:
+        if score_value > high_score:
+            ofi.write(f'''hscore:{score_value}
+mpoints:{max_points}
+pmode:{player_mode}
+plives:{player_lives}
+px:{playerX}
+py:{playerY}
+byc:{bulletY_changed}
+enum:{num_of_enemies}
+ex:{enemyX}
+ey:{enemyY}''')
+        else:
+            ofi.write(f'''hscore:{high_score}
+mpoints:{max_points}
+pmode:{player_mode}
+plives:{player_lives}
+px:{playerX}
+py:{playerY}
+byc:{bulletY_changed}
+enum:{num_of_enemies}
+ex:{enemyX}
+ey:{enemyY}''')
+    print('all data saved!')
+
+def recall(data: str):
+    with open(SAVEFILE, 'rt') as ifi:
+        savi = ifi.read()
+        if savi == '': return 0
+        ssavi = savi.split('\n')
+        for sa in ssavi:
+            ssa = sa.split(':')
+            if ssa[0] == data:
+                return ssa[1]
+
+
+high_score = int(recall('hscore'))
+player_mode = recall('pmode')
+#if RECALLALL:
+    #max_points = int(recall('mpoints'))
+    #player_lives = int(recall('plives'))
+    #bulletY_changed = int(recall('byc'))
+    #num_of_enemies = int(recall('enum'))
 # main game loop
 while running:
 
-    if should_quit: break
+    if should_quit: save(); break
+    if should_breset: should_breset = False; basicreset()
+    if should_creset: should_creset = False; complreset()
 
     screen.fill((0, 0, 0))  # background
     screen.blit(backgroungImg, (0, 0))
+
+    if player_lives == 0 or artiloss: game_over(); show_credits(200,350); break
+
+    if player_mode == 'normal': player_icon = pygame.image.load(PLAYER_SPRITES[0]); bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = pygame.image.load(ENEMY_SPRITES[0]); reloadEnemySprites(num_of_enemies)
+    if player_mode == 'heavy': player_icon = pygame.image.load(PLAYER_SPRITES[1]); bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = pygame.image.load(ENEMY_SPRITES[1]); reloadEnemySprites(num_of_enemies)
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             print('game was quit!')
+            save()
             running = False
 
         # player movement functionally
@@ -145,28 +259,34 @@ while running:
 
             if event.key == pygame.K_ESCAPE: should_quit = True
 
-            if event.key == pygame.K_TAB:
-                game_over()
-                show_credits(300,350)
-                break
+            #if event.key == pygame.K_r: should_breset = True
+            #if event.key == pygame.K_y: should_creset = True
 
-            if event.key == pygame.K_LEFT:
+            #if event.key == pygame.K_TAB: artiloss = True; game_over(); show_credits(300,350)
+
+            #if event.key == pygame.K_p and not add_score: add_score = True
+            #elif event.key == pygame.K_p and add_score: add_score = False
+
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
                 print("left key pressed")
                 changedX = -playerSpeed
 
-            if event.key == pygame.K_RIGHT:
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
                 print("right key pressed")
                 changedX = playerSpeed
 
             if event.key == pygame.K_SPACE:
-                if bullet_state is "ready":
+                if bullet_state == "ready":
                     bullet_sound = mixer.Sound(MUSICS[1])
                     if MUSIC_CONFIG['shoot']: bullet_sound.play()
                     bulletX = playerX
                     bullet_state = "fired"
                     print('bullet fired!')
+            
+            if event.key == pygame.K_1: print(f'player sprite is now {PLAYER_SPRITES[1]}'); player_mode = 'normal'
+            if event.key == pygame.K_2: print(f'player sprite is now {PLAYER_SPRITES[0]}'); player_mode = 'heavy'
 
-        if event.type == pygame.KEYUP and (event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT):
+        if event.type == pygame.KEYUP and (event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_a or event.key == pygame.K_d):
             changedX = 0
 
     # player movement
@@ -184,9 +304,7 @@ while running:
         if enemyY[i] > 440:
             for j in range(num_of_enemies):
                 enemyY[j] = 2000
-            game_over()
-            show_credits(300,350)
-            break
+            reloadEnemies(num_of_enemies); player_lives -= 1
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
             enemyX_change[i] = 4
@@ -215,18 +333,22 @@ while running:
         bullet_state = "ready"
         print('bullet never hit an enemy! bullet reset!')
 
-    if bullet_state is "fired":
+    if bullet_state == "fired":
         bullet(bulletX, bulletY)
         bulletY -= bulletY_changed
 
-    if score_value == max_points:
+    if score_value >= max_points:
         max_points *= 2
         num_of_enemies += 2 
         bulletY_changed += 1
         reloadEnemies(num_of_enemies)
 
+    if add_score:
+        score_value += sval_added
+        if should_mas: sval_added *= 2
+
     show_score(10,10)
-    show_lives(10, 40)
+    show_lives(10, 70)
 
     player(playerX, playerY)
     pygame.display.update()

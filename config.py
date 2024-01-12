@@ -2,11 +2,16 @@ import os
 
 
 
+
+SAVEFILE = 'save.txt'
+
 PLAYER_SPEED = 11
 LIVES = 3
 BULLET_SPEED = 15
 ENEMIES_NUM = 6
 SMAX_POINTS = 6
+
+RECALLALL = True
 
 
 MUSIC_CONFIG = {
@@ -32,9 +37,24 @@ MUSICS = [
 #3: bullet sprite
 #4: enemy sprite
 SPRITES = [
-    'PoliceCruiser.png',
+    'SpaceHunter-42B.png',
     'background.png',
-    'PoliceCruiser.png',
+    'SpaceHunter-42B.png',
     'BrassBullet.png',
     'Greeben-flat.png'
+]
+
+
+PLAYER_SPRITES = [
+    'SpaceHunter-42B.png',
+    'PoliceCruiser.png'
+]
+
+BULLET_SPRITES = [
+    'BrassBullet.png'
+]
+
+ENEMY_SPRITES = [
+    'Greeben-flat.png',
+    'Tengen-flat.png'
 ]
