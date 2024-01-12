@@ -1,0 +1,10 @@
+hscore:300
+mpoints:6
+pmode:tri
+plives:3
+px:370
+py:480
+byc:15
+enum:6
+ex:[706, 354, 324, 736, 687, 494]
+ey:[174, 156, 183, 136, 114, 71]

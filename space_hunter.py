@@ -41,7 +41,7 @@ playerY = 480
 changedX = 0
 playerSpeed = PLAYER_SPEED
 
-player_mode = 'normal'
+player_mode = playerClasses.bounty.sid
 
 max_points = SMAX_POINTS
 high_score = 0
@@ -135,6 +135,8 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
         if distance < 27: return True
     elif player_mode == 'heavy': 
         if distance < 49: return True
+    elif player_mode == 'tri': 
+        if distance < 57: return True
     return False
 
 
@@ -244,8 +246,13 @@ while running:
 
     if player_lives == 0 or artiloss: game_over(); show_credits(200,350); break
 
-    if player_mode == 'normal': player_icon = pygame.image.load(PLAYER_SPRITES[0]); bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = pygame.image.load(ENEMY_SPRITES[0]); reloadEnemySprites(num_of_enemies)
-    if player_mode == 'heavy': player_icon = pygame.image.load(PLAYER_SPRITES[1]); bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = pygame.image.load(ENEMY_SPRITES[1]); reloadEnemySprites(num_of_enemies)
+    if player_mode == 'normal': player_icon = playerClasses.bounty.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.bounty.enSprite; reloadEnemySprites(num_of_enemies)
+
+    if player_mode == 'heavy': player_icon = playerClasses.police.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.police.enSprite; reloadEnemySprites(num_of_enemies)
+
+    if player_mode == 'tri': player_icon = playerClasses.trilo.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.trilo.enSprite; reloadEnemySprites(num_of_enemies)
+
+
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -267,13 +274,9 @@ while running:
             #if event.key == pygame.K_p and not add_score: add_score = True
             #elif event.key == pygame.K_p and add_score: add_score = False
 
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a:
-                print("left key pressed")
-                changedX = -playerSpeed
+            if event.key == pygame.K_LEFT or event.key == pygame.K_a: print("left key pressed"); changedX = -playerSpeed
 
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_d:
-                print("right key pressed")
-                changedX = playerSpeed
+            if event.key == pygame.K_RIGHT or event.key == pygame.K_d: print("right key pressed"); changedX = playerSpeed
 
             if event.key == pygame.K_SPACE:
                 if bullet_state == "ready":
@@ -283,8 +286,9 @@ while running:
                     bullet_state = "fired"
                     print('bullet fired!')
             
-            if event.key == pygame.K_1: print(f'player sprite is now {PLAYER_SPRITES[1]}'); player_mode = 'normal'
-            if event.key == pygame.K_2: print(f'player sprite is now {PLAYER_SPRITES[0]}'); player_mode = 'heavy'
+            if event.key == pygame.K_1: print(f'player sprite is now {playerClasses.bounty.asSprite}'); player_mode = playerClasses.bounty.sid
+            if event.key == pygame.K_2: print(f'player sprite is now {playerClasses.police.asSprite}'); player_mode = playerClasses.police.sid
+            if event.key == pygame.K_3: print(f'player sprite is now {playerClasses.police.asSprite}'); player_mode = playerClasses.trilo.sid
 
         if event.type == pygame.KEYUP and (event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_a or event.key == pygame.K_d):
             changedX = 0

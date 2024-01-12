@@ -1,4 +1,5 @@
 import os
+import pygame
 
 
 
@@ -47,7 +48,8 @@ SPRITES = [
 
 PLAYER_SPRITES = [
     'SpaceHunter-42B.png',
-    'PoliceCruiser.png'
+    'PoliceCruiser.png',
+    'Trinloite-J73.png'
 ]
 
 BULLET_SPRITES = [
@@ -56,5 +58,41 @@ BULLET_SPRITES = [
 
 ENEMY_SPRITES = [
     'Greeben-flat.png',
-    'Tengen-flat.png'
+    'Tengen-flat.png',
+    'Uufoo-flat.png'
 ]
+
+
+class playerClasses:
+    class bounty:
+        '''
+        The Greeben are wanted across the galaxy!\n
+        And Trex Rin is on a mission to capture them all and nab that sweet sweet paycheck!
+        '''
+        sid = 'normal'
+        name = 'Spacehunter-42B'
+        sdex = 0
+        asSprite = pygame.image.load(PLAYER_SPRITES[sdex])
+        enSprite = pygame.image.load(ENEMY_SPRITES[sdex])
+    
+    class police:
+        '''
+        The Tengen have escaped from Galactica Prison!\n
+        And Ho Eo is on the case in his PC-371!
+        '''
+        sid = 'heavy'
+        name = 'PC-371' #PC -> Police Cruiser
+        sdex = 1
+        asSprite = pygame.image.load(PLAYER_SPRITES[sdex])
+        enSprite = pygame.image.load(ENEMY_SPRITES[sdex])
+
+    class trilo:
+        '''
+        Renound space adventurer Gen Han is in a bit of a situation!\n
+        His mortal enemies, the Uufoo, have found his location and they don't look too friendly!
+        '''
+        sid = 'tri'
+        name = 'Trinloite-J73'
+        sdex = 2
+        asSprite = pygame.image.load(PLAYER_SPRITES[sdex])
+        enSprite = pygame.image.load(ENEMY_SPRITES[sdex])
