@@ -18,7 +18,7 @@ I'm gonna have so much fun working on this!
 
 ## Other stuff
 
-All art except the background is made by me(still working on that)(also very proud of the shading on [PoliceCruiser.png])
+All art except the background is made by me(still working on that)(also very proud of the shading on PoliceCruiser.png and SpaceHunter-42B.png)
 
 Music is not made by me
 
