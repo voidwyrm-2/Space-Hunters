@@ -42,6 +42,7 @@ changedX = 0
 playerSpeed = PLAYER_SPEED
 
 player_mode = playerClasses.bounty.sid
+player_lore = playerClasses.bounty.slore
 
 max_points = SMAX_POINTS
 high_score = 0
@@ -49,6 +50,13 @@ high_score = 0
 # Score
 score_value = 0
 font = pygame.font.Font('freesansbold.ttf', 32)
+
+def show_lore(x,y):
+    lorefont = pygame.font.Font('freesansbold.ttf',15)
+    plore1 = lorefont.render(player_lore[0],True,(255,255,255))
+    screen.blit(plore1,(x,y))
+    plore2 = lorefont.render(player_lore[1],True,(255,255,255))
+    screen.blit(plore2,(x,y + 30))
 
 def show_score(x,y):
     score = font.render(f'Score: {score_value}({high_score})', True, (255, 255, 255))
@@ -137,6 +145,9 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
         if distance < 49: return True
     elif player_mode == 'tri': 
         if distance < 57: return True
+    
+    elif player_mode == 'debug': 
+        if distance < 100: return True
     return False
 
 
@@ -144,6 +155,8 @@ running = True
 should_quit = False; should_breset = False; should_creset = False
 add_score = False; VAL_TO_ADD = 1; sval_added = VAL_TO_ADD; should_mas = True
 artiloss = False
+
+showlore = False
 
 def basicreset():
     global score_value
@@ -246,11 +259,11 @@ while running:
 
     if player_lives == 0 or artiloss: game_over(); show_credits(200,350); break
 
-    if player_mode == 'normal': player_icon = playerClasses.bounty.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.bounty.enSprite; reloadEnemySprites(num_of_enemies)
+    if player_mode == 'normal': player_icon = playerClasses.bounty.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.bounty.enSprite; reloadEnemySprites(num_of_enemies); player_lore = playerClasses.bounty.slore
 
-    if player_mode == 'heavy': player_icon = playerClasses.police.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.police.enSprite; reloadEnemySprites(num_of_enemies)
+    if player_mode == 'heavy': player_icon = playerClasses.police.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.police.enSprite; reloadEnemySprites(num_of_enemies); player_lore = playerClasses.police.slore
 
-    if player_mode == 'tri': player_icon = playerClasses.trilo.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.trilo.enSprite; reloadEnemySprites(num_of_enemies)
+    if player_mode == 'tri': player_icon = playerClasses.trilo.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.trilo.enSprite; reloadEnemySprites(num_of_enemies); player_lore = playerClasses.trilo.slore
 
 
 
@@ -265,6 +278,9 @@ while running:
             #print("you preesed a key")
 
             if event.key == pygame.K_ESCAPE: should_quit = True
+
+            if event.key == pygame.K_l and not showlore: showlore = True
+            elif event.key == pygame.K_l and showlore: showlore = False
 
             #if event.key == pygame.K_r: should_breset = True
             #if event.key == pygame.K_y: should_creset = True
@@ -351,7 +367,8 @@ while running:
         score_value += sval_added
         if should_mas: sval_added *= 2
 
-    show_score(10,10)
+    if showlore: show_lore(10, 100)
+    show_score(10, 10)
     show_lives(10, 70)
 
     player(playerX, playerY)
