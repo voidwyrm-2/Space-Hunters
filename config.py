@@ -12,7 +12,12 @@ BULLET_SPEED = 15
 ENEMIES_NUM = 6
 SMAX_POINTS = 6
 
+HEART_SPEED = 10
+
 RECALLALL = True
+
+
+CLEARLOGS = True
 
 
 MUSIC_CONFIG = {
@@ -62,6 +67,12 @@ ENEMY_SPRITES = [
     'Uufoo-flat.png'
 ]
 
+HEART_SPRITES = [
+    'SmolBlackHeart.png',
+    'SmolTitaniumHeart.png',
+    'SmolGrexiumHeart.png'
+]
+
 
 class playerClasses:
     class shipbase:
@@ -72,6 +83,7 @@ class playerClasses:
         sdex = -1
         asSprite = pygame.image.load('SpaceHunter-42B.png')
         enSprite = pygame.image.load('SpaceHunter-42B.png')
+        heSprite = pygame.image.load('SmolBlackHeart.png')
 
 
     class bounty:
@@ -83,6 +95,7 @@ class playerClasses:
         sdex = 0
         asSprite = pygame.image.load(PLAYER_SPRITES[sdex])
         enSprite = pygame.image.load(ENEMY_SPRITES[sdex])
+        heSprite = pygame.image.load(HEART_SPRITES[sdex])
     
     class police:
         sid = 'heavy'
@@ -93,6 +106,7 @@ class playerClasses:
         sdex = 1
         asSprite = pygame.image.load(PLAYER_SPRITES[sdex])
         enSprite = pygame.image.load(ENEMY_SPRITES[sdex])
+        heSprite = pygame.image.load(HEART_SPRITES[sdex])
 
     class trilo:
         sid = 'tri'
@@ -103,3 +117,4 @@ class playerClasses:
         sdex = 2
         asSprite = pygame.image.load(PLAYER_SPRITES[sdex])
         enSprite = pygame.image.load(ENEMY_SPRITES[sdex])
+        heSprite = pygame.image.load(HEART_SPRITES[sdex])

@@ -3,7 +3,7 @@
 # Edited into something different enough to not infringe on copyright by Nuclear Pasta
 
 import pygame
-import random
+from random import randint
 import math
 from pygame import mixer
 from pathlib import Path
@@ -17,12 +17,19 @@ pygame.init()
 screen = pygame.display.set_mode((800, 600))  # passing width and height
 
 # title and icon
-pygame.display.set_caption("Space Hunter")
-icon = pygame.image.load(SPRITES[0])
+pygame.display.set_caption("Space Hunters")
+icon = pygame.image.load('SpaceHunters.png')
 pygame.display.set_icon(icon)
 
 
 pygame.font.init()
+
+if CLEARLOGS: clearfile('logs.txt')
+
+
+
+game_lost = False
+
 
 
 # Background image
@@ -34,7 +41,7 @@ if MUSIC_CONFIG['background']:
     mixer.music.play(-1) #play background music on loop
 
 # defining our player
-player_icon = pygame.image.load(PLAYER_SPRITES[0])
+player_icon = playerClasses.bounty.asSprite
 player_lives = LIVES
 playerX = 370
 playerY = 480
@@ -64,12 +71,31 @@ def show_score(x,y):
     needed = font.render(f'Needed: {max_points}', True, (255, 255, 255))
     screen.blit(needed, (x, y + 30))
 
+def createLives(lives):
+    for l in range(lives):
+        phearts.append(pheart_icon)
+
+def reloadHearts(lives):
+    phearts.clear()
+    createLives(lives)
+
 def show_lives(x,y):
-    lives = font.render("Lives: "+ str(player_lives),True,(255,255,255))
-    screen.blit(lives,(x,y))
+    #old way:
+    #lives = font.render("Lives: "+ str(player_lives),True,(255,255,255))
+    #screen.blit(lives,(x,y))
+    #new way:
+    phco = 0
+    for ls in phearts:
+        screen.blit(ls, (x + (phco * 30), y))
+        phco += 1
+
+
+    
 
 #game over
 def game_over():
+    global game_lost
+    game_lost = True
     overfont = pygame.font.Font('freesansbold.ttf',64)
     gamefont = overfont.render("GAME OVER",True,(255,255,255))
     screen.blit(gamefont,(200,250))
@@ -88,8 +114,8 @@ enemy_sprite = pygame.image.load(ENEMY_SPRITES[0])
 def createEnemies(enmax: int):
     for i in range(enmax):
         enemyImg.append(enemy_sprite)
-        enemyX.append(random.randint(0, 736))
-        enemyY.append(random.randint(50, 150))
+        enemyX.append(randint(0, 736))
+        enemyY.append(randint(50, 150))
         enemyX_change.append(4)
         enemyY_change.append(40)
 
@@ -120,8 +146,8 @@ def enemy(x, y, i):
     screen.blit(enemyImg[i], (x, y))
 
 def resetEnemy(eX, eY, i):
-    eX[i] = random.randint(0, 736)
-    eY[i] = random.randint(50, 150)
+    eX[i] = randint(0, 736)
+    eY[i] = randint(50, 150)
 
 # defining our bullet
 bullet_icon = pygame.image.load(BULLET_SPRITES[0])
@@ -137,7 +163,7 @@ def bullet(x, y):
     screen.blit(bullet_icon, (x + 16, y + 10))
 
 
-def isCollision(enemyX, enemyY, bulletX, bulletY):
+def isBulletCollision(enemyX, enemyY, bulletX, bulletY):
     distance = math.sqrt(math.pow(enemyX - bulletX, 2) + (math.pow(enemyY - bulletY, 2)))
     if player_mode == 'normal':
         if distance < 27: return True
@@ -149,6 +175,47 @@ def isCollision(enemyX, enemyY, bulletX, bulletY):
     elif player_mode == 'debug': 
         if distance < 100: return True
     return False
+
+
+
+def isHeartCollision(playerX, playerY, heartX, heartY):
+    distance = math.sqrt(math.pow(heartX - heartX, 2) + (math.pow(playerY - playerY, 2)))
+    if distance < 27: return True
+    return False
+
+pheart_icon = playerClasses.bounty.heSprite
+phearts = []
+pheartpos = []
+#justkillme = ((10, 10), (10, 10))
+
+# defining our heart
+heart_icon = pygame.image.load('PinkHeart.png')
+heartX = 0
+heartY = 0
+heartY_changed = HEART_SPEED  #heart speed
+heart_state = 'ready'
+heartcanspawn = True
+
+
+def reloadgraphics(): pygame.display.flip()
+
+
+def spawnheart(heartY):
+    global heart_state
+    hposX = randint(10, 726)#(0, 736)
+    screen.blit(heart_icon, (hposX, heartY))
+    heart_state = 'dropping'
+
+
+def heartroll():
+    log('rolling for heart...')
+    if heartcanspawn and heart_state == 'ready':
+        log('heart gotten!')
+        roll = randint(0, 100)
+        if roll > 80: spawnheart(0)
+
+
+createLives(player_lives)
 
 
 running = True
@@ -227,7 +294,11 @@ byc:{bulletY_changed}
 enum:{num_of_enemies}
 ex:{enemyX}
 ey:{enemyY}''')
+    
     print('all data saved!')
+
+
+
 
 def recall(data: str):
     with open(SAVEFILE, 'rt') as ifi:
@@ -247,6 +318,7 @@ player_mode = recall('pmode')
     #player_lives = int(recall('plives'))
     #bulletY_changed = int(recall('byc'))
     #num_of_enemies = int(recall('enum'))
+
 # main game loop
 while running:
 
@@ -256,14 +328,29 @@ while running:
 
     screen.fill((0, 0, 0))  # background
     screen.blit(backgroungImg, (0, 0))
+    if player_lives < 0: player_lives = 0
+    if player_lives == 0 or artiloss: game_over(); show_credits(200,350)
 
-    if player_lives == 0 or artiloss: game_over(); show_credits(200,350); break
+    if player_mode == 'normal':
+        player_icon = playerClasses.bounty.asSprite
+        bullet_icon = pygame.image.load(BULLET_SPRITES[0])
+        enemy_sprite = playerClasses.bounty.enSprite; reloadEnemySprites(num_of_enemies)
+        pheart_icon = playerClasses.bounty.heSprite; reloadHearts(player_lives)
+        player_lore = playerClasses.bounty.slore
 
-    if player_mode == 'normal': player_icon = playerClasses.bounty.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.bounty.enSprite; reloadEnemySprites(num_of_enemies); player_lore = playerClasses.bounty.slore
+    if player_mode == 'heavy':
+        player_icon = playerClasses.police.asSprite
+        bullet_icon = pygame.image.load(BULLET_SPRITES[0])
+        enemy_sprite = playerClasses.police.enSprite; reloadEnemySprites(num_of_enemies)
+        pheart_icon = playerClasses.police.heSprite; reloadHearts(player_lives)
+        player_lore = playerClasses.police.slore
 
-    if player_mode == 'heavy': player_icon = playerClasses.police.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.police.enSprite; reloadEnemySprites(num_of_enemies); player_lore = playerClasses.police.slore
-
-    if player_mode == 'tri': player_icon = playerClasses.trilo.asSprite; bullet_icon = pygame.image.load(BULLET_SPRITES[0]); enemy_sprite = playerClasses.trilo.enSprite; reloadEnemySprites(num_of_enemies); player_lore = playerClasses.trilo.slore
+    if player_mode == 'tri':
+        player_icon = playerClasses.trilo.asSprite
+        bullet_icon = pygame.image.load(BULLET_SPRITES[0])
+        enemy_sprite = playerClasses.trilo.enSprite; reloadEnemySprites(num_of_enemies)
+        pheart_icon = playerClasses.trilo.heSprite; reloadHearts(player_lives)
+        player_lore = playerClasses.trilo.slore
 
 
 
@@ -278,33 +365,33 @@ while running:
             #print("you preesed a key")
 
             if event.key == pygame.K_ESCAPE: should_quit = True
+            if not game_lost:
+                if event.key == pygame.K_l and not showlore: showlore = True
+                elif event.key == pygame.K_l and showlore: showlore = False
 
-            if event.key == pygame.K_l and not showlore: showlore = True
-            elif event.key == pygame.K_l and showlore: showlore = False
+                if event.key == pygame.K_r: reloadgraphics()#should_breset = True
+                #if event.key == pygame.K_y: should_creset = True
 
-            #if event.key == pygame.K_r: should_breset = True
-            #if event.key == pygame.K_y: should_creset = True
+                if event.key == pygame.K_TAB: player_lives -= 1
 
-            #if event.key == pygame.K_TAB: artiloss = True; game_over(); show_credits(300,350)
+                #if event.key == pygame.K_p and not add_score: add_score = True
+                #elif event.key == pygame.K_p and add_score: add_score = False
 
-            #if event.key == pygame.K_p and not add_score: add_score = True
-            #elif event.key == pygame.K_p and add_score: add_score = False
+                if event.key == pygame.K_LEFT or event.key == pygame.K_a: print("left key pressed"); changedX = -playerSpeed
 
-            if event.key == pygame.K_LEFT or event.key == pygame.K_a: print("left key pressed"); changedX = -playerSpeed
+                if event.key == pygame.K_RIGHT or event.key == pygame.K_d: print("right key pressed"); changedX = playerSpeed
 
-            if event.key == pygame.K_RIGHT or event.key == pygame.K_d: print("right key pressed"); changedX = playerSpeed
-
-            if event.key == pygame.K_SPACE:
-                if bullet_state == "ready":
-                    bullet_sound = mixer.Sound(MUSICS[1])
-                    if MUSIC_CONFIG['shoot']: bullet_sound.play()
-                    bulletX = playerX
-                    bullet_state = "fired"
-                    print('bullet fired!')
+                if event.key == pygame.K_SPACE or event.key == pygame.K_w:
+                    if bullet_state == "ready":
+                        bullet_sound = mixer.Sound(MUSICS[1])
+                        if MUSIC_CONFIG['shoot']: bullet_sound.play()
+                        bulletX = playerX
+                        bullet_state = "fired"
+                        print('bullet fired!')
             
-            if event.key == pygame.K_1: print(f'player sprite is now {playerClasses.bounty.asSprite}'); player_mode = playerClasses.bounty.sid
-            if event.key == pygame.K_2: print(f'player sprite is now {playerClasses.police.asSprite}'); player_mode = playerClasses.police.sid
-            if event.key == pygame.K_3: print(f'player sprite is now {playerClasses.police.asSprite}'); player_mode = playerClasses.trilo.sid
+                if event.key == pygame.K_1: print(f'player sprite is now {playerClasses.bounty.asSprite}'); player_mode = playerClasses.bounty.sid
+                if event.key == pygame.K_2: print(f'player sprite is now {playerClasses.police.asSprite}'); player_mode = playerClasses.police.sid
+                if event.key == pygame.K_3: print(f'player sprite is now {playerClasses.police.asSprite}'); player_mode = playerClasses.trilo.sid
 
         if event.type == pygame.KEYUP and (event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT or event.key == pygame.K_a or event.key == pygame.K_d):
             changedX = 0
@@ -317,6 +404,8 @@ while running:
     elif playerX >= 736:
         playerX = 736
 
+    #heartroll()
+
     # Enemy Movement
     for i in range(num_of_enemies):
 
@@ -324,7 +413,7 @@ while running:
         if enemyY[i] > 440:
             for j in range(num_of_enemies):
                 enemyY[j] = 2000
-            reloadEnemies(num_of_enemies); player_lives -= 1
+            reloadEnemies(num_of_enemies); player_lives -= 1; reloadHearts(player_lives)
         enemyX[i] += enemyX_change[i]
         if enemyX[i] <= 0:
             enemyX_change[i] = 4
@@ -334,7 +423,7 @@ while running:
             enemyY[i] += enemyY_change[i]
 
         # Collision
-        collision = isCollision(enemyX[i], enemyY[i], bulletX, bulletY)
+        collision = isBulletCollision(enemyX[i], enemyY[i], bulletX, bulletY)
         if collision:
             if MUSIC_CONFIG['edeath']: mixer.Sound(MUSICS[2]).play()
             bulletY = 480
@@ -342,8 +431,8 @@ while running:
             score_value += 1
             resetEnemy(enemyX, enemyY, i)
             print('bullet hit enemy! enemy reset!')
-            #enemyX[i] = random.randint(0, 736)
-            #enemyY[i] = random.randint(50, 150)
+            #enemyX[i] = randint(0, 736)
+            #enemyY[i] = randint(50, 150)
 
         enemy(enemyX[i], enemyY[i], i)
 
@@ -353,14 +442,24 @@ while running:
         bullet_state = "ready"
         print('bullet never hit an enemy! bullet reset!')
 
+    '''if heartY <= 0:
+        reloadgraphics()
+        heart_state = "ready"
+        print('heart never hit the player! heart reset!')'''
+
     if bullet_state == "fired":
         bullet(bulletX, bulletY)
         bulletY -= bulletY_changed
 
+    '''if heart_state == "dropped":
+        spawnheart(heartY)
+        heartY -= heartY_changed'''
+
+
     if score_value >= max_points:
         max_points *= 2
         num_of_enemies += 2 
-        bulletY_changed += 1
+        bulletY_changed += 2
         reloadEnemies(num_of_enemies)
 
     if add_score:
@@ -372,5 +471,6 @@ while running:
     show_lives(10, 70)
 
     player(playerX, playerY)
+    #log(f'pspeed:{playerSpeed}, espeedX:{enemyX_change}, espeedY:{enemyY_change}')
     pygame.display.update()
     if should_quit: pygame.quit()
